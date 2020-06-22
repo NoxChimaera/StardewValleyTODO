@@ -1,0 +1,10 @@
+{
+  "Name": "Stardew Valley TODO",
+  "Author": "Nox Chimaera",
+  "Version": "0.1.0",
+  "Description": "Adds TODO list",
+  "UniqueID": "NoxChimaera.StardewValleyTodo",
+  "EntryDll": "StardewValleyTodo.dll",
+  "MinimumApiVersion": "3.1.0",
+  "UpdateKeys": []
+}
