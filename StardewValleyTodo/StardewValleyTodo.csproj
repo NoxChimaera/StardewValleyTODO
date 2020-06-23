@@ -43,9 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\JunimoBundleHelper.cs" />
     <Compile Include="Inventory.cs" />
     <Compile Include="Models\TodoGameItem.cs" />
     <Compile Include="Models\TodoItemBase.cs" />
+    <Compile Include="Models\TodoJunimoBundle.cs" />
+    <Compile Include="Models\TodoJunimoBundleItem.cs" />
     <Compile Include="Models\TodoList.cs" />
     <Compile Include="Models\TodoRecipe.cs" />
     <Compile Include="ModEntry.cs" />

@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
+using StardewValleyTodo.Helpers;
 using StardewValleyTodo.Models;
 
 namespace StardewValleyTodo {
@@ -11,12 +13,17 @@ namespace StardewValleyTodo {
         private TodoList todolist = new TodoList();
         private Inventory inventory;
 
+        private JunimoBundleHelper junimoHelper;
+
         public override void Entry(IModHelper helper) {
             helper.Events.Input.ButtonPressed += Input_ButtonPressed;
             helper.Events.Display.RenderedHud += Display_RenderedHud;
 
             helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
             helper.Events.Player.InventoryChanged += Player_InventoryChanged;
+
+
+            junimoHelper = new JunimoBundleHelper(Helper);
         }
 
         /// <summary>
@@ -26,6 +33,7 @@ namespace StardewValleyTodo {
         /// <param name="e">Arguments</param>
         private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e) {
             inventory = new Inventory(Game1.player.items);
+            todolist = new TodoList();
         }
 
         /// <summary>
@@ -87,7 +95,7 @@ namespace StardewValleyTodo {
         /// <param name="e">Arguments</param>
         private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e) {
             if (!Context.IsWorldReady) return;
-
+            
             if (e.Button == SButton.Z) {
                 if (Game1.activeClickableMenu is GameMenu menu) {
                     if (menu.GetCurrentPage() is CraftingPage page) {
@@ -114,8 +122,32 @@ namespace StardewValleyTodo {
                         var recipe = new TodoRecipe(item.DisplayName, components);
                         todolist.Toggle(recipe);
                     }
+                } else if (Game1.activeClickableMenu is JunimoNoteMenu) {
+                    InJunimoNoteMenu();
                 }
             }
+        }
+
+        private void InJunimoNoteMenu() {
+            var menu = (JunimoNoteMenu) Game1.activeClickableMenu;
+            
+            // Not a bundle page
+            if (menu.ingredientSlots.Count == 0) {
+                return;
+            }
+
+            var bundleName = junimoHelper.GetCurrentBundleName(menu);
+            if (todolist.Has(bundleName)) {
+                todolist.Off(bundleName);
+                return;
+            }
+
+            var ingredients = junimoHelper
+                .GetAvailableIngredients(menu)
+                .Select(x => new TodoJunimoBundleItem(x.DisplayName, x.Stack, x.Quality == 2));
+
+            var bundle = new TodoJunimoBundle(bundleName, ingredients, junimoHelper.CountEmptySlots(menu));
+            todolist.Toggle(bundle);
         }
 
     }

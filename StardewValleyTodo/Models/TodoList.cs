@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace StardewValleyTodo.Models {
     /// <summary>
-    /// TODO list.
+    /// Todo list.
     /// </summary>
     class TodoList {
         /// <summary>
@@ -13,7 +13,7 @@ namespace StardewValleyTodo.Models {
         public List<TodoItemBase> Items { get; }
 
         /// <summary>
-        /// Create empty TODO list.
+        /// Create empty todo list.
         /// </summary>
         public TodoList() {
             Items = new List<TodoItemBase>();
@@ -50,7 +50,7 @@ namespace StardewValleyTodo.Models {
         }
 
         /// <summary>
-        /// Draws TODO list onto the batch.
+        /// Draws todo list onto the batch.
         /// </summary>
         /// <param name="batch">Sprite batch</param>
         /// <param name="position">Start position</param>
