@@ -27,7 +27,7 @@ namespace StardewValleyTodo {
                 if (item == null) {
                     continue;
                 }
-                
+
                 var key = item.DisplayName;
                 var value = item.Stack;
 

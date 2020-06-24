@@ -1,37 +1,62 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
-using System.Collections.Generic;
+using StardewValleyTodo.Game;
 using System.Linq;
 
 namespace StardewValleyTodo.Models {
+    /// <summary>
+    /// Junimo bundle todo item.
+    /// </summary>
     class TodoJunimoBundle : TodoItemBase {
         /// <summary>
-        /// Bundle components.
+        /// Junimo bundle.
         /// </summary>
-        public List<TodoJunimoBundleItem> Items { get; }
+        public Bundle Bundle { get; }
 
-        public int EmptySlots { get; }
-
-        public TodoJunimoBundle(string name, IEnumerable<TodoJunimoBundleItem> items, int emptySlots) : base(name) {
-            Items = items.ToList();
-            EmptySlots = emptySlots;
+        /// <summary>
+        /// Creates new todo item. 
+        /// </summary>
+        /// <param name="bundle">Junimo bundle</param>
+        public TodoJunimoBundle(Bundle bundle) 
+        : base(bundle.DisplayName) {
+            Bundle = bundle;
         }
 
+        /// <inheritdoc />
         public override Vector2 Draw(SpriteBatch batch, Vector2 position, Inventory inventory) {
-            var display = $"{Name} ({EmptySlots} slots):";
-            var size = Game1.smallFont.MeasureString(display);
-            batch.DrawString(Game1.smallFont, display, position, Color.Yellow);
+            var caption = $"{Bundle.DisplayName} (нужно {Bundle.CountEmptySlots()}):";
+            var size = Game1.smallFont.MeasureString(caption);
+            batch.DrawString(Game1.smallFont, caption, position, Color.Yellow);
             position.Y += size.Y;
 
-            foreach (var item in Items) {
-                var itemSize = item.Draw(batch, position, inventory);
+            foreach (var item in Bundle.Ingredients.Where(x => !x.IsDonated)) {
+                var itemSize = DrawItem(batch, position, inventory, item);
                 position.Y += itemSize.Y;
 
                 size.X = MathHelper.Max(size.X, itemSize.X);
                 size.Y += itemSize.Y;
             }
 
+            return size;
+        }
+
+        /// <summary>
+        /// Draws bundle ingredient.
+        /// </summary>
+        /// <param name="batch">Sprite batch</param>
+        /// <param name="position">Position</param>
+        /// <param name="inventory">Inventory</param>
+        /// <param name="ingredient">Ingredient</param>
+        /// <returns>Drawn area size</returns>
+        private Vector2 DrawItem(SpriteBatch batch, Vector2 position, Inventory inventory, BundleIngredient ingredient) {
+            // TODO: check item quality
+            var has = inventory.Get(ingredient.DisplayName);
+            var display = $"{ingredient.DisplayName} {(ingredient.Quality == 2 ? "*" : "")} ({has}/{ingredient.Count})";
+            var color = has >= ingredient.Count ? Color.LightGreen : Color.White;
+            batch.DrawString(Game1.smallFont, display, position, color);
+
+            var size = Game1.smallFont.MeasureString(display);
             return size;
         }
     }

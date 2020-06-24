@@ -5,12 +5,15 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
+using StardewValleyTodo.Game;
 using StardewValleyTodo.Helpers;
 using StardewValleyTodo.Models;
 
 namespace StardewValleyTodo {
     public class ModEntry : Mod {
         private TodoList todolist = new TodoList();
+
+        private Bundles bundles;
         private Inventory inventory;
 
         private JunimoBundleHelper junimoHelper;
@@ -22,8 +25,18 @@ namespace StardewValleyTodo {
             helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
             helper.Events.Player.InventoryChanged += Player_InventoryChanged;
 
+            helper.Events.GameLoop.OneSecondUpdateTicked += GameLoop_OneSecondUpdateTicked;
 
             junimoHelper = new JunimoBundleHelper(Helper);
+        }
+
+        private void GameLoop_OneSecondUpdateTicked(object sender, OneSecondUpdateTickedEventArgs e) {
+            if (!Context.IsWorldReady) {
+                return;
+            }
+
+            bundles.Update();
+            todolist.Update();
         }
 
         /// <summary>
@@ -32,6 +45,9 @@ namespace StardewValleyTodo {
         /// <param name="sender">Sender</param>
         /// <param name="e">Arguments</param>
         private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e) {
+            bundles = new Bundles();
+            bundles.Startup();
+
             inventory = new Inventory(Game1.player.items);
             todolist = new TodoList();
         }
@@ -66,7 +82,7 @@ namespace StardewValleyTodo {
         }
     
         /// <summary>
-        /// Renders TODO list.
+        /// Renders todo list.
         /// </summary>
         private void DrawTodo() {
             var b = Game1.spriteBatch;
@@ -142,12 +158,9 @@ namespace StardewValleyTodo {
                 return;
             }
 
-            var ingredients = junimoHelper
-                .GetAvailableIngredients(menu)
-                .Select(x => new TodoJunimoBundleItem(x.DisplayName, x.Stack, x.Quality == 2));
-
-            var bundle = new TodoJunimoBundle(bundleName, ingredients, junimoHelper.CountEmptySlots(menu));
-            todolist.Toggle(bundle);
+            var bundle = bundles.Find(bundleName);
+            var todo = new TodoJunimoBundle(bundle);
+            todolist.Toggle(todo);
         }
 
     }

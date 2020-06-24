@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace StardewValleyTodo.Models {
     /// <summary>
@@ -46,6 +47,17 @@ namespace StardewValleyTodo.Models {
                 Items.Add(item);
             } else {
                 Items.Remove(found);
+            }
+        }
+
+        /// <summary>
+        /// Updates todo list state.
+        /// </summary>
+        public void Update() {
+            // Remove completed bundles.
+            var toRemove = Items.OfType<TodoJunimoBundle>().Where(x => x.Bundle.IsComplete).ToArray();
+            foreach (var item in toRemove) {
+                Items.Remove(item);
             }
         }
 
