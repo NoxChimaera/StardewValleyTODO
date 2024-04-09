@@ -1,19 +1,18 @@
-﻿using Netcode;
-using StardewValley;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using SVInventory = StardewValley.Inventories.Inventory;
 
 namespace StardewValleyTodo {
     /// <summary>
     /// Represents players inventory aggregated by item names. Uses display name as item identifiers.
     /// </summary>
-    public class Inventory {
+    public class Inventory2 {
         private Dictionary<string, int> items;
 
         /// <summary>
         /// Creates new instance.
         /// </summary>
         /// <param name="inventory">Native inventory represenation</param>
-        public Inventory(NetObjectList<Item> inventory) {
+        public Inventory2(SVInventory inventory) {
             Startup(inventory);
         }
 
@@ -21,7 +20,7 @@ namespace StardewValleyTodo {
         /// Copies items from native inventory into this.
         /// </summary>
         /// <param name="inventory">Native inventory</param>
-        private void Startup(NetObjectList<Item> inventory) {
+        private void Startup(SVInventory inventory) {
             items = new Dictionary<string, int>();
             foreach (var item in inventory) {
                 if (item == null) {
@@ -38,7 +37,7 @@ namespace StardewValleyTodo {
                 }
             }
         }
-        
+
         /// <summary>
         /// Returns count of items of specified id.
         /// </summary>

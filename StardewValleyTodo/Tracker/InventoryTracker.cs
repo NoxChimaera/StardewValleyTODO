@@ -1,23 +1,15 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using StardewValleyTodo.Game;
 
-namespace StardewValleyTodo.Models {
-    /// <summary>
-    /// Todo list.
-    /// </summary>
-    class TodoList {
-        /// <summary>
-        /// TODO list items.
-        /// </summary>
-        public List<TodoItemBase> Items { get; }
+namespace StardewValleyTodo.Tracker {
+    public class InventoryTracker {
+        public List<TrackableItemBase> Items { get; private set; }
 
-        /// <summary>
-        /// Create empty todo list.
-        /// </summary>
-        public TodoList() {
-            Items = new List<TodoItemBase>();
+        public InventoryTracker() {
+            Items = new List<TrackableItemBase>();
         }
 
         /// <summary>
@@ -38,10 +30,10 @@ namespace StardewValleyTodo.Models {
         }
 
         /// <summary>
-        /// Adds an item if there is no such item in the list, otherwise removes existed. 
+        /// Adds an item if there is no such item in the list, otherwise removes existed.
         /// </summary>
         /// <param name="item">Item</param>
-        public void Toggle(TodoItemBase item) {
+        public void Toggle(TrackableItemBase item) {
             var found = Items.Find(x => x.Name == item.Name);
             if (found == null) {
                 Items.Add(item);
@@ -50,12 +42,16 @@ namespace StardewValleyTodo.Models {
             }
         }
 
+        public void Reset() {
+            Items = new List<TrackableItemBase>();
+        }
+
         /// <summary>
         /// Updates todo list state.
         /// </summary>
         public void Update() {
             // Remove completed bundles.
-            var toRemove = Items.OfType<TodoJunimoBundle>().Where(x => x.Bundle.IsComplete).ToArray();
+            var toRemove = Items.OfType<TrackableJunimoBundle>().Where(x => x.Bundle.IsComplete).ToArray();
             foreach (var item in toRemove) {
                 Items.Remove(item);
             }

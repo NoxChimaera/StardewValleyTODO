@@ -4,21 +4,21 @@ using StardewValley;
 using StardewValleyTodo.Game;
 using System.Linq;
 
-namespace StardewValleyTodo.Models {
+namespace StardewValleyTodo.Tracker {
     /// <summary>
     /// Junimo bundle todo item.
     /// </summary>
-    class TodoJunimoBundle : TodoItemBase {
+    class TrackableJunimoBundle : TrackableItemBase {
         /// <summary>
         /// Junimo bundle.
         /// </summary>
         public Bundle Bundle { get; }
 
         /// <summary>
-        /// Creates new todo item. 
+        /// Creates new todo item.
         /// </summary>
         /// <param name="bundle">Junimo bundle</param>
-        public TodoJunimoBundle(Bundle bundle) 
+        public TrackableJunimoBundle(Bundle bundle)
         : base(bundle.DisplayName) {
             Bundle = bundle;
         }

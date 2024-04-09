@@ -38,7 +38,7 @@ namespace StardewValleyTodo.Game {
             communityCenter = Game1.getLocationFromName("CommunityCenter") as CommunityCenter;
 
             var raw = Game1.content.Load<Dictionary<string, string>>("Data\\Bundles" + Locale.GetCurrentLocaleName());
-            
+
             foreach (var pair in raw) {
                 var key = pair.Key.Split('/');
                 var id = int.Parse(key[1]);
@@ -114,11 +114,13 @@ namespace StardewValleyTodo.Game {
         }
 
         private bool IsObjectExists(int id) {
-            return Game1.objectInformation.ContainsKey(id);
+            return false;
+            // return Game1.objectInformation.ContainsKey(id);
         }
 
         private string LoadObjectName(int id) {
-            return Game1.objectInformation[id].Split('/')[4];
+            return "";
+            // return Game1.objectInformation[id].Split('/')[4];
         }
     }
 }
