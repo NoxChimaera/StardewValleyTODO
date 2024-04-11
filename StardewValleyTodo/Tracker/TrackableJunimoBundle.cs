@@ -25,7 +25,7 @@ namespace StardewValleyTodo.Tracker {
 
         /// <inheritdoc />
         public override Vector2 Draw(SpriteBatch batch, Vector2 position, Inventory inventory) {
-            var caption = $"{Bundle.Name} (нужно {Bundle.CountEmptySlots()}):";
+            var caption = $"{Bundle.Name} ({Bundle.CountEmptySlots()} items):";
             var size = Game1.smallFont.MeasureString(caption);
             batch.DrawString(Game1.smallFont, caption, position, Color.Yellow);
             position.Y += size.Y;

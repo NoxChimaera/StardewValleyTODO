@@ -6,6 +6,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
+using StardewValleyTodo.Controllers;
 using StardewValleyTodo.Game;
 using StardewValleyTodo.Tracker;
 
@@ -15,6 +16,10 @@ namespace StardewValleyTodo {
         private InventoryTracker _inventoryTracker;
 
         private JunimoBundles _junimoBundles;
+
+        private CraftingMenuController _craftingMenuController;
+        private CarpenterMenuController _carpenterMenuController;
+        private JunimoBundleController _junimoBundleController;
 
         public override void Entry(IModHelper helper) {
             helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
@@ -30,6 +35,10 @@ namespace StardewValleyTodo {
             _inventory = new Inventory(Game1.player.Items);
             _inventoryTracker = new InventoryTracker();
             _junimoBundles = new JunimoBundles();
+
+            _craftingMenuController = new CraftingMenuController();
+            _carpenterMenuController = new CarpenterMenuController();
+            _junimoBundleController = new JunimoBundleController();
         }
 
         private void Player_InventoryChanged(object sender, InventoryChangedEventArgs e) {
@@ -109,99 +118,19 @@ namespace StardewValleyTodo {
                 var currentMenu = Game1.activeClickableMenu;
 
                 if (currentMenu is GameMenu gameMenu) {
-                    ProcessInputInGameMenu(gameMenu);
+                    if (gameMenu.GetCurrentPage() is CraftingPage page) {
+                        _craftingMenuController.ProcessInput(page, _inventoryTracker);
+                    }
                 } else if (currentMenu is JunimoNoteMenu junimoNoteMenu) {
-                    ProcessInputInJunimoMenu(junimoNoteMenu);
+                    _junimoBundleController.ProcessInput(junimoNoteMenu, _inventoryTracker, _junimoBundles);
                 } else if (currentMenu is CarpenterMenu carpenterMenu) {
-                    ProcessInputInCarpenterMenu(carpenterMenu);
+                    _carpenterMenuController.ProcessInput(carpenterMenu, _inventoryTracker);
                 }
             }
         }
 
         private void ResetInventoryTracker() {
             _inventoryTracker.Reset();
-        }
-
-        private void ProcessInputInGameMenu(GameMenu menu) {
-            var currentPage = menu.GetCurrentPage();
-
-            if (currentPage is CraftingPage page) {
-                var recipe = page.hoverRecipe;
-
-                if (recipe == null) {
-                    return;
-                }
-
-                if (_inventoryTracker.Has(recipe.DisplayName)) {
-                    _inventoryTracker.Off(recipe.DisplayName);
-
-                    return;
-                }
-
-                var rawComponents = recipe.recipeList;
-                var components = new List<CountableItem>(rawComponents.Count);
-
-                foreach (var pair in rawComponents.ToList()) {
-                    var info = Game1.objectData[pair.Key];
-                    var name = info.Name;
-                    var count = pair.Value;
-
-                    components.Add(new CountableItem(name, count));
-                }
-
-                var todoRecipe = new TrackableRecipe(recipe.DisplayName, components);
-                _inventoryTracker.Toggle(todoRecipe);
-            }
-        }
-
-        private void ProcessInputInJunimoMenu(JunimoNoteMenu menu) {
-            // Not a bundle page
-            if (menu.ingredientSlots.Count == 0) {
-                return;
-            }
-
-            var currentPage = menu.currentPageBundle;
-            if (currentPage.complete) {
-                return;
-            }
-
-            var name = currentPage.label;
-            if (_inventoryTracker.Has(name)) {
-                _inventoryTracker.Off(name);
-            }
-
-            var bundle = _junimoBundles.Find(name);
-            var todo = new TrackableJunimoBundle(bundle);
-            _inventoryTracker.Toggle(todo);
-        }
-
-        // Robin's building menu
-        private void ProcessInputInCarpenterMenu(CarpenterMenu menu) {
-            var blueprint = menu.Blueprint;
-            var name = blueprint.DisplayName;
-            var cost = blueprint.BuildCost;
-            var displayName = $"{name} ({cost} g.)";
-
-            if (_inventoryTracker.Has(displayName)) {
-                _inventoryTracker.Off(displayName);
-
-                return;
-            }
-
-            var materials = blueprint.BuildMaterials;
-            var components = new List<CountableItem>(materials.Count);
-
-            foreach (var material in materials) {
-                // Converts "(O)388" to "388"
-                var id = material.Id.Split(')').Last();
-                var info = Game1.objectData[id];
-                var materialName = info.Name;
-
-                components.Add(new CountableItem(materialName, material.Amount));
-            }
-
-            var recipe = new TrackableRecipe(displayName, components);
-            _inventoryTracker.Toggle(recipe);
         }
     }
 }
