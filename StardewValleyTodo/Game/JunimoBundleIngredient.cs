@@ -4,11 +4,11 @@ namespace StardewValleyTodo.Game {
     /// <summary>
     /// Bundle ingredient.
     /// </summary>
-    class BundleIngredient {
+    public class JunimoBundleIngredient {
         /// <summary>
         /// Object identifier.
         /// </summary>
-        public int Id { get; }
+        public string Id { get; }
 
         /// <summary>
         /// Index within bundle.
@@ -44,7 +44,7 @@ namespace StardewValleyTodo.Game {
         /// <param name="count">Required count</param>
         /// <param name="quality">Required quality</param>
         /// <param name="isDonated">Is donated</param>
-        public BundleIngredient(int id, int index, string displayName, int count, int quality, bool isDonated) {
+        public JunimoBundleIngredient(string id, int index, string displayName, int count, int quality, bool isDonated) {
             Id = id;
             Index = index;
             DisplayName = displayName ?? throw new ArgumentNullException(nameof(displayName));

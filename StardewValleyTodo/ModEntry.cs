@@ -1,12 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewModdingAPI.Framework.ModLoading.Rewriters.StardewValley_1_6;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValleyTodo.Game;
@@ -17,6 +14,8 @@ namespace StardewValleyTodo {
         private Inventory _inventory;
         private InventoryTracker _inventoryTracker;
 
+        private JunimoBundles _junimoBundles;
+
         public override void Entry(IModHelper helper) {
             helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
 
@@ -25,15 +24,12 @@ namespace StardewValleyTodo {
 
             helper.Events.Player.InventoryChanged += Player_InventoryChanged;
             helper.Events.GameLoop.OneSecondUpdateTicked += GameLoop_OneSecondUpdateTicked;
-
         }
 
         private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e) {
-            // bundles = new Bundles();
-            // bundles.Startup();
-
             _inventory = new Inventory(Game1.player.Items);
             _inventoryTracker = new InventoryTracker();
+            _junimoBundles = new JunimoBundles();
         }
 
         private void Player_InventoryChanged(object sender, InventoryChangedEventArgs e) {
@@ -59,7 +55,7 @@ namespace StardewValleyTodo {
                 return;
             }
 
-            // bundles.Update();
+            _junimoBundles.Update();
             _inventoryTracker.Update();
         }
 
@@ -112,16 +108,10 @@ namespace StardewValleyTodo {
 
                 var currentMenu = Game1.activeClickableMenu;
 
-                Console.WriteLine(currentMenu.GetType());
-
                 if (currentMenu is GameMenu gameMenu) {
                     ProcessInputInGameMenu(gameMenu);
                 } else if (currentMenu is JunimoNoteMenu junimoNoteMenu) {
                     ProcessInputInJunimoMenu(junimoNoteMenu);
-                } else if (currentMenu is DialogueBox) {
-                    // TODO: upgrade house dialog
-                } else if (currentMenu is CraftingPage) {
-                    // TODO: cooking
                 } else if (currentMenu is CarpenterMenu carpenterMenu) {
                     ProcessInputInCarpenterMenu(carpenterMenu);
                 }
@@ -164,7 +154,26 @@ namespace StardewValleyTodo {
             }
         }
 
-        private void ProcessInputInJunimoMenu(JunimoNoteMenu menu) { }
+        private void ProcessInputInJunimoMenu(JunimoNoteMenu menu) {
+            // Not a bundle page
+            if (menu.ingredientSlots.Count == 0) {
+                return;
+            }
+
+            var currentPage = menu.currentPageBundle;
+            if (currentPage.complete) {
+                return;
+            }
+
+            var name = currentPage.label;
+            if (_inventoryTracker.Has(name)) {
+                _inventoryTracker.Off(name);
+            }
+
+            var bundle = _junimoBundles.Find(name);
+            var todo = new TrackableJunimoBundle(bundle);
+            _inventoryTracker.Toggle(todo);
+        }
 
         // Robin's building menu
         private void ProcessInputInCarpenterMenu(CarpenterMenu menu) {
