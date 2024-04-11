@@ -4,28 +4,28 @@ using StardewValley;
 using StardewValleyTodo.Game;
 using System.Linq;
 
-namespace StardewValleyTodo.Models {
+namespace StardewValleyTodo.Tracker {
     /// <summary>
     /// Junimo bundle todo item.
     /// </summary>
-    class TodoJunimoBundle : TodoItemBase {
+    class TrackableJunimoBundle : TrackableItemBase {
         /// <summary>
         /// Junimo bundle.
         /// </summary>
-        public Bundle Bundle { get; }
+        public JunimoBundle Bundle { get; }
 
         /// <summary>
-        /// Creates new todo item. 
+        /// Creates new todo item.
         /// </summary>
         /// <param name="bundle">Junimo bundle</param>
-        public TodoJunimoBundle(Bundle bundle) 
-        : base(bundle.DisplayName) {
+        public TrackableJunimoBundle(JunimoBundle bundle)
+        : base(bundle.Name) {
             Bundle = bundle;
         }
 
         /// <inheritdoc />
         public override Vector2 Draw(SpriteBatch batch, Vector2 position, Inventory inventory) {
-            var caption = $"{Bundle.DisplayName} (нужно {Bundle.CountEmptySlots()}):";
+            var caption = $"{Bundle.Name} ({Bundle.CountEmptySlots()} items):";
             var size = Game1.smallFont.MeasureString(caption);
             batch.DrawString(Game1.smallFont, caption, position, Color.Yellow);
             position.Y += size.Y;
@@ -49,7 +49,7 @@ namespace StardewValleyTodo.Models {
         /// <param name="inventory">Inventory</param>
         /// <param name="ingredient">Ingredient</param>
         /// <returns>Drawn area size</returns>
-        private Vector2 DrawItem(SpriteBatch batch, Vector2 position, Inventory inventory, BundleIngredient ingredient) {
+        private Vector2 DrawItem(SpriteBatch batch, Vector2 position, Inventory inventory, JunimoBundleIngredient ingredient) {
             // TODO: check item quality
             var has = inventory.Get(ingredient.DisplayName);
             var display = $"{ingredient.DisplayName} {(ingredient.Quality == 2 ? "*" : "")} ({has}/{ingredient.Count})";

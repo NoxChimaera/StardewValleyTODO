@@ -1,33 +1,62 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
+using StardewValleyTodo.Controllers;
 using StardewValleyTodo.Game;
-using StardewValleyTodo.Helpers;
-using StardewValleyTodo.Models;
+using StardewValleyTodo.Tracker;
 
 namespace StardewValleyTodo {
     public class ModEntry : Mod {
-        private TodoList todolist = new TodoList();
+        private Inventory _inventory;
+        private InventoryTracker _inventoryTracker;
 
-        private Bundles bundles;
-        private Inventory inventory;
+        private JunimoBundles _junimoBundles;
 
-        private JunimoBundleHelper junimoHelper;
+        private CraftingMenuController _craftingMenuController;
+        private CarpenterMenuController _carpenterMenuController;
+        private JunimoBundleController _junimoBundleController;
 
         public override void Entry(IModHelper helper) {
+            helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
+
             helper.Events.Input.ButtonPressed += Input_ButtonPressed;
             helper.Events.Display.RenderedHud += Display_RenderedHud;
 
-            helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
             helper.Events.Player.InventoryChanged += Player_InventoryChanged;
-
             helper.Events.GameLoop.OneSecondUpdateTicked += GameLoop_OneSecondUpdateTicked;
+        }
 
-            junimoHelper = new JunimoBundleHelper(Helper);
+        private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e) {
+            _inventory = new Inventory(Game1.player.Items);
+            _inventoryTracker = new InventoryTracker();
+            _junimoBundles = new JunimoBundles();
+
+            _craftingMenuController = new CraftingMenuController();
+            _carpenterMenuController = new CarpenterMenuController();
+            _junimoBundleController = new JunimoBundleController();
+        }
+
+        private void Player_InventoryChanged(object sender, InventoryChangedEventArgs e) {
+            if (!e.IsLocalPlayer) {
+                return;
+            }
+
+            foreach (var item in e.Added) {
+                _inventory.Offset(item.DisplayName, item.Stack);
+            }
+
+            foreach (var item in e.Removed) {
+                _inventory.Offset(item.DisplayName, -item.Stack);
+            }
+
+            foreach (var change in e.QuantityChanged) {
+                _inventory.Set(change.Item.DisplayName, change.NewSize);
+            }
         }
 
         private void GameLoop_OneSecondUpdateTicked(object sender, OneSecondUpdateTickedEventArgs e) {
@@ -35,133 +64,73 @@ namespace StardewValleyTodo {
                 return;
             }
 
-            bundles.Update();
-            todolist.Update();
+            _junimoBundles.Update();
+            _inventoryTracker.Update();
         }
 
-        /// <summary>
-        /// Restores state of player's inventory after game loading.
-        /// </summary>
-        /// <param name="sender">Sender</param>
-        /// <param name="e">Arguments</param>
-        private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e) {
-            bundles = new Bundles();
-            bundles.Startup();
-
-            inventory = new Inventory(Game1.player.items);
-            todolist = new TodoList();
-        }
-
-        /// <summary>
-        /// Updates state of player's inventory after native inventory state change.
-        /// </summary>
-        /// <param name="sender">Sender</param>
-        /// <param name="e">Arguments</param>
-        private void Player_InventoryChanged(object sender, InventoryChangedEventArgs e) {
-            if (!e.IsLocalPlayer) {
-                return;
-            }
-
-            foreach (var item in e.Added) {
-                inventory.Offset(item.DisplayName, item.Stack);
-            }
-
-            foreach (var item in e.Removed) {
-                inventory.Offset(item.DisplayName, -item.Stack);
-            }
-
-            foreach (var change in e.QuantityChanged) {
-                inventory.Set(change.Item.DisplayName, change.NewSize);
-            }
-        }
-        
         private void Display_RenderedHud(object sender, RenderedHudEventArgs e) {
             if (Context.IsWorldReady && Game1.displayHUD) {
                 DrawTodo();
             }
         }
-    
-        /// <summary>
-        /// Renders todo list.
-        /// </summary>
+
         private void DrawTodo() {
-            var b = Game1.spriteBatch;
-            if (todolist.Items.Count == 0) {
+            var sb = Game1.spriteBatch;
+            if (_inventoryTracker.Items.Count == 0) {
                 return;
             }
 
-            // Gap for NPCLocationMap's minimap
+            // TODO: Add settings
             var offset = new Vector2(0, 220);
             var padding = 8;
             var contentOffset = new Vector2(offset.X + padding, offset.Y + padding);
 
-            var size = todolist.Draw(b, contentOffset, inventory);
-            b.Draw(
-                Game1.menuTexture, 
-                new Rectangle((int) offset.X, (int) offset.Y, (int) size.X + padding * 2, (int) size.Y + padding * 2), 
-                new Rectangle(8, 256, 3, 4), 
+            var size = _inventoryTracker.Draw(sb, contentOffset, _inventory);
+            sb.Draw(
+                Game1.menuTexture,
+                new Rectangle((int) offset.X, (int) offset.Y, (int) size.X + padding * 2, (int) size.Y + padding * 2),
+                new Rectangle(8, 256, 3, 4),
                 Color.White);
-            todolist.Draw(b, contentOffset, inventory);
+            _inventoryTracker.Draw(sb, contentOffset, _inventory);
         }
 
-        /// <summary>
-        /// Handles player input.
-        /// </summary>
-        /// <param name="sender">Sender</param>
-        /// <param name="e">Arguments</param>
         private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e) {
-            if (!Context.IsWorldReady) return;
-            
+            if (!Context.IsWorldReady) {
+                return;
+            }
+
+            // TODO: For debug
+            if (e.Button == SButton.Q) {
+                if (e.IsDown(SButton.LeftShift)) {
+                    Game1.timeOfDay -= 30;
+                } else {
+                    Game1.timeOfDay += 30;
+                }
+            }
+
             if (e.Button == SButton.Z) {
-                if (Game1.activeClickableMenu is GameMenu menu) {
-                    if (menu.GetCurrentPage() is CraftingPage page) {
-                        var item = Helper.Reflection.GetField<CraftingRecipe>(page, "hoverRecipe").GetValue();
-                        if (item == null) {
-                            return;
-                        }
+                if (e.IsDown(SButton.LeftShift) || e.IsDown(SButton.RightShift)) {
+                    ResetInventoryTracker();
 
-                        if (todolist.Has(item.DisplayName)) {
-                            todolist.Off(item.DisplayName);
-                            return;
-                        }
+                    return;
+                }
 
-                        var rawComponents = Helper.Reflection.GetField<Dictionary<int, int>>(item, "recipeList").GetValue();
-                        var components = new List<TodoGameItem>(rawComponents.Count);
-                        foreach (var component in rawComponents.Keys) {
-                            var info = Game1.objectInformation[component];
-                            var name = info.Split('/')[4];
-                            var count = rawComponents[component];
+                var currentMenu = Game1.activeClickableMenu;
 
-                            components.Add(new TodoGameItem(name, count));
-                        }
-
-                        var recipe = new TodoRecipe(item.DisplayName, components);
-                        todolist.Toggle(recipe);
+                if (currentMenu is GameMenu gameMenu) {
+                    if (gameMenu.GetCurrentPage() is CraftingPage page) {
+                        _craftingMenuController.ProcessInput(page, _inventoryTracker);
                     }
-                } else if (Game1.activeClickableMenu is JunimoNoteMenu) {
-                    InJunimoNoteMenu();
+                } else if (currentMenu is JunimoNoteMenu junimoNoteMenu) {
+                    _junimoBundleController.ProcessInput(junimoNoteMenu, _inventoryTracker, _junimoBundles);
+                } else if (currentMenu is CarpenterMenu carpenterMenu) {
+                    _carpenterMenuController.ProcessInput(carpenterMenu, _inventoryTracker);
                 }
             }
         }
 
-        private void InJunimoNoteMenu() {
-            var menu = (JunimoNoteMenu) Game1.activeClickableMenu;
-            
-            // Not a bundle page
-            if (menu.ingredientSlots.Count == 0) {
-                return;
-            }
-
-            var bundleName = junimoHelper.GetCurrentBundleName(menu);
-            if (todolist.Has(bundleName)) {
-                todolist.Off(bundleName);
-                return;
-            }
-
-            var bundle = bundles.Find(bundleName);
-            var todo = new TodoJunimoBundle(bundle);
-            todolist.Toggle(todo);
+        private void ResetInventoryTracker() {
+            _inventoryTracker.Reset();
         }
-
     }
 }

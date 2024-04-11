@@ -1,25 +1,26 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
+using StardewValleyTodo.Game;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace StardewValleyTodo.Models {
+namespace StardewValleyTodo.Tracker {
     /// <summary>
     /// Crafting recipe.
     /// </summary>
-    class TodoRecipe : TodoItemBase {
+    class TrackableRecipe : TrackableItemBase {
         /// <summary>
         /// Recipe components.
         /// </summary>
-        public List<TodoGameItem> Items { get; }
+        public List<CountableItem> Items { get; }
 
         /// <summary>
         /// Creates new instance.
         /// </summary>
         /// <param name="name">Recipe name</param>
         /// <param name="items">Recipe components</param>
-        public TodoRecipe(string name, IEnumerable<TodoGameItem> items): base(name) {
+        public TrackableRecipe(string name, IEnumerable<CountableItem> items): base(name) {
             Items = items.ToList();
         }
 
@@ -29,7 +30,7 @@ namespace StardewValleyTodo.Models {
             var size = Game1.smallFont.MeasureString(display);
             batch.DrawString(Game1.smallFont, display, position, Color.Yellow);
             position.Y += size.Y;
-            
+
             foreach (var item in Items) {
                 var itemSize = item.Draw(batch, position, inventory);
                 position.Y += itemSize.Y;
