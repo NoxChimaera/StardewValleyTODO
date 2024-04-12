@@ -8,6 +8,8 @@ namespace StardewValleyTodo.Tracker {
     public class InventoryTracker {
         public List<TrackableItemBase> Items { get; private set; }
 
+        public bool IsVisible { get; set; } = true;
+
         public InventoryTracker() {
             Items = new List<TrackableItemBase>();
         }
@@ -65,6 +67,10 @@ namespace StardewValleyTodo.Tracker {
         /// <param name="inventory">Player inventory</param>
         /// <returns>Drawn area size</returns>
         public Vector2 Draw(SpriteBatch batch, Vector2 position, Inventory inventory) {
+            if (!IsVisible) {
+                return Vector2.Zero;
+            }
+
             var size = Vector2.Zero;
             foreach (var item in Items) {
                 var itemSize = item.Draw(batch, position, inventory);

@@ -1,17 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using GenericModConfigMenu;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
+using StardewValleyTodo.Config;
 using StardewValleyTodo.Controllers;
 using StardewValleyTodo.Game;
 using StardewValleyTodo.Tracker;
 
 namespace StardewValleyTodo {
     public class ModEntry : Mod {
+        private ModConfig _config;
+
         private Inventory _inventory;
         private InventoryTracker _inventoryTracker;
 
@@ -22,6 +23,10 @@ namespace StardewValleyTodo {
         private JunimoBundleController _junimoBundleController;
 
         public override void Entry(IModHelper helper) {
+            _config = helper.ReadConfig<ModConfig>();
+
+            helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
+
             helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
 
             helper.Events.Input.ButtonPressed += Input_ButtonPressed;
@@ -29,6 +34,23 @@ namespace StardewValleyTodo {
 
             helper.Events.Player.InventoryChanged += Player_InventoryChanged;
             helper.Events.GameLoop.OneSecondUpdateTicked += GameLoop_OneSecondUpdateTicked;
+        }
+
+        private void GameLoop_GameLaunched(object sender, GameLaunchedEventArgs e) {
+            var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            if (configMenu is null) {
+                // Generic Mod Config Menu is not installed
+                return;
+            }
+
+            configMenu.Register(this.ModManifest, () => _config = new ModConfig(), () => Helper.WriteConfig(_config));
+
+            configMenu.AddNumberOption(
+                ModManifest,
+                () => _config.VerticalOffset,
+                value => _config.VerticalOffset = value,
+                () => "Vertical Offset"
+            );
         }
 
         private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e) {
@@ -76,12 +98,11 @@ namespace StardewValleyTodo {
 
         private void DrawTodo() {
             var sb = Game1.spriteBatch;
-            if (_inventoryTracker.Items.Count == 0) {
+            if (_inventoryTracker.Items.Count == 0 || !_inventoryTracker.IsVisible) {
                 return;
             }
 
-            // TODO: Add settings
-            var offset = new Vector2(0, 220);
+            var offset = new Vector2(0, _config.VerticalOffset);
             var padding = 8;
             var contentOffset = new Vector2(offset.X + padding, offset.Y + padding);
 
@@ -99,33 +120,31 @@ namespace StardewValleyTodo {
                 return;
             }
 
-            // TODO: For debug
-            if (e.Button == SButton.Q) {
-                if (e.IsDown(SButton.LeftShift)) {
-                    Game1.timeOfDay -= 30;
-                } else {
-                    Game1.timeOfDay += 30;
-                }
-            }
-
             if (e.Button == SButton.Z) {
-                if (e.IsDown(SButton.LeftShift) || e.IsDown(SButton.RightShift)) {
-                    ResetInventoryTracker();
-
-                    return;
-                }
-
                 var currentMenu = Game1.activeClickableMenu;
 
+                // In menus
                 if (currentMenu is GameMenu gameMenu) {
                     if (gameMenu.GetCurrentPage() is CraftingPage page) {
                         _craftingMenuController.ProcessInput(page, _inventoryTracker);
                     }
+                    return;
                 } else if (currentMenu is JunimoNoteMenu junimoNoteMenu) {
                     _junimoBundleController.ProcessInput(junimoNoteMenu, _inventoryTracker, _junimoBundles);
+                    return;
                 } else if (currentMenu is CarpenterMenu carpenterMenu) {
                     _carpenterMenuController.ProcessInput(carpenterMenu, _inventoryTracker);
+                    return;
                 }
+
+                // In game
+                if (e.IsDown(SButton.LeftShift) || e.IsDown(SButton.RightShift)) {
+                    ResetInventoryTracker();
+                    return;
+                }
+
+                // Hide or show tracker UI
+                _inventoryTracker.IsVisible = !_inventoryTracker.IsVisible;
             }
         }
 
