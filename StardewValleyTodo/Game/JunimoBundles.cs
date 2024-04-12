@@ -32,10 +32,14 @@ namespace StardewValleyTodo.Game {
 
             foreach (var rawBundle in raw) {
                 // Bulletin Board/35
-                var (_, roomId) = BundleStringParser.parseKey(rawBundle.Key);
+                var parsedKey = BundleStringParser.parseKey(rawBundle.Key);
+                var roomId = parsedKey.SpriteIndex;
 
                 // Fodder/BO 104 1/262 10 0 178 10 0 613 3 0/3///Кормовой
-                var (_, _, ingredientsString, slots, localeName) = BundleStringParser.parseValue(rawBundle.Value);
+                var parsedValue = BundleStringParser.parseValue(rawBundle.Value);
+                var ingredientsString = parsedValue.Ingredients;
+                var slots = parsedValue.NumberOfItems;
+                var localeName = parsedValue.DisplayName;
 
                 var bundle = new JunimoBundle(roomId, localeName, slots);
                 _junimoBundles.Add(bundle);
