@@ -7,13 +7,16 @@ namespace StardewValleyTodo.Tracker {
     /// Base trackable item.
     /// </summary>
     public abstract class TrackableItemBase {
+        public string Id {get;}
+
         /// <summary>
         /// Item name (identifier).
         /// </summary>
-        public string Name { get; }
+        public string DisplayName { get; }
 
-        protected TrackableItemBase(string name) {
-            Name = name;
+        protected TrackableItemBase(string id, string displayName) {
+            Id = id;
+            DisplayName = displayName;
         }
 
         /// <summary>

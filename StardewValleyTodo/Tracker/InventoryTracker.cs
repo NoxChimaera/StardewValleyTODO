@@ -20,7 +20,7 @@ namespace StardewValleyTodo.Tracker {
         /// <param name="name">Item (or recipe) name</param>
         /// <returns>True if this list contains specified item (or recipe)</returns>
         public bool Has(string name) {
-            return Items.Find(x => x.Name == name) != null;
+            return Items.Find(x => x.DisplayName == name) != null;
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace StardewValleyTodo.Tracker {
         /// </summary>
         /// <param name="name">Item name</param>
         public void Off(string name) {
-            Items.RemoveAll(x => x.Name == name);
+            Items.RemoveAll(x => x.DisplayName == name);
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace StardewValleyTodo.Tracker {
         /// </summary>
         /// <param name="item">Item</param>
         public void Toggle(TrackableItemBase item) {
-            var found = Items.Find(x => x.Name == item.Name);
+            var found = Items.Find(x => x.DisplayName == item.DisplayName);
             if (found == null) {
                 Items.Add(item);
             } else {

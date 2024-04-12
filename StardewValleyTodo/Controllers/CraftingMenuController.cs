@@ -29,7 +29,7 @@ namespace StardewValleyTodo.Controllers {
                 var name = LocalizedStringLoader.Load(info.DisplayName);
                 var count = kv.Value;
 
-                components.Add(new CountableItem(name, count));
+                components.Add(new CountableItem(kv.Key, name, count));
             }
 
             var todoRecipe = new TrackableRecipe(recipeName, components);

@@ -12,61 +12,44 @@ namespace StardewValleyTodo.Game {
         /// <param name="inventory">Native inventory structure</param>
         public Inventory(NativeInventory inventory) {
             _nativeInventory = inventory;
-            _items = new Dictionary<string, int>();
 
             Startup(inventory);
         }
 
         private void Startup(NativeInventory inventory) {
+            _items = new Dictionary<string, int>();
+
             foreach (var item in inventory) {
                 if (item == null) {
                     // Skip empty slots
                     continue;
                 }
 
-                var itemName = item.DisplayName;
+                var itemId = item.ItemId;
                 var count = item.Stack;
 
-                if (_items.ContainsKey(itemName)) {
-                    _items[itemName] += count;
+                if (_items.ContainsKey(itemId)) {
+                    _items[itemId] += count;
                 } else {
-                    _items.Add(itemName, count);
+                    _items.Add(itemId, count);
                 }
             }
+        }
+
+        public void Update() {
+            Startup(_nativeInventory);
         }
 
         /// <summary>
         /// Returns amount of items of specified id.
         /// </summary>
-        /// <param name="itemName"></param>
+        /// <param name="itemId"></param>
         /// <returns></returns>
-        public int Get(string itemName) {
-            if (_items.ContainsKey(itemName)) {
-                return _items[itemName];
+        public int Get(string itemId) {
+            if (_items.ContainsKey(itemId)) {
+                return _items[itemId];
             } else {
                 return 0;
-            }
-        }
-
-        /// <summary>
-        /// Sets count of items of specified id.
-        /// </summary>
-        /// <param name="item">Item name</param>
-        /// <param name="count">Count</param>
-        public void Set(string item, int count) {
-            _items[item] = count;
-        }
-
-        /// <summary>
-        /// Adds count of items of specified id.
-        /// </summary>
-        /// <param name="item">Item name</param>
-        /// <param name="offset">Amount added</param>
-        public void Offset(string item, int offset) {
-            if (_items.ContainsKey(item)) {
-                _items[item] += offset;
-            } else {
-                _items[item] = offset;
             }
         }
     }

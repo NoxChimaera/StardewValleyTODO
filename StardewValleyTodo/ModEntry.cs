@@ -68,17 +68,7 @@ namespace StardewValleyTodo {
                 return;
             }
 
-            foreach (var item in e.Added) {
-                _inventory.Offset(item.DisplayName, item.Stack);
-            }
-
-            foreach (var item in e.Removed) {
-                _inventory.Offset(item.DisplayName, -item.Stack);
-            }
-
-            foreach (var change in e.QuantityChanged) {
-                _inventory.Set(change.Item.DisplayName, change.NewSize);
-            }
+            _inventory.Update();
         }
 
         private void GameLoop_OneSecondUpdateTicked(object sender, OneSecondUpdateTickedEventArgs e) {

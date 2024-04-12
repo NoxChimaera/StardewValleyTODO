@@ -16,17 +16,18 @@ namespace StardewValleyTodo.Tracker {
         /// <summary>
         /// Creates new instance.
         /// </summary>
+        /// <param name="id">Item id</param>
         /// <param name="name">Item name</param>
         /// <param name="count">Count to craft</param>
-        public CountableItem(string name, int count): base(name) {
+        public CountableItem(string id, string name, int count): base(id, name) {
             Count = count;
         }
 
         /// <inheritdoc />
         public override Vector2 Draw(SpriteBatch batch, Vector2 position, Inventory inventory) {
-            var has = inventory.Get(Name);
-            var display = $"{Name} ({has}/{Count})";
-            var color = has >= Count ? Color.LightGreen : Color.White;
+            var hasItems = inventory.Get(Id);
+            var display = $"{DisplayName} ({hasItems}/{Count})";
+            var color = hasItems >= Count ? Color.LightGreen : Color.White;
             batch.DrawString(Game1.smallFont, display, position, color);
 
             var size = Game1.smallFont.MeasureString(display);

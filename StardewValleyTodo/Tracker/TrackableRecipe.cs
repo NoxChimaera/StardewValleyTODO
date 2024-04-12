@@ -20,13 +20,13 @@ namespace StardewValleyTodo.Tracker {
         /// </summary>
         /// <param name="name">Recipe name</param>
         /// <param name="items">Recipe components</param>
-        public TrackableRecipe(string name, IEnumerable<CountableItem> items): base(name) {
+        public TrackableRecipe(string name, IEnumerable<CountableItem> items) : base(name, name) {
             Items = items.ToList();
         }
 
         /// <inheritdoc />
         public override Vector2 Draw(SpriteBatch batch, Vector2 position, Inventory inventory) {
-            var display = $"{Name}:";
+            var display = $"{DisplayName}:";
             var size = Game1.smallFont.MeasureString(display);
             batch.DrawString(Game1.smallFont, display, position, Color.Yellow);
             position.Y += size.Y;

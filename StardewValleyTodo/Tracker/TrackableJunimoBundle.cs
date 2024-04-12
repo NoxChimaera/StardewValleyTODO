@@ -19,7 +19,7 @@ namespace StardewValleyTodo.Tracker {
         /// </summary>
         /// <param name="bundle">Junimo bundle</param>
         public TrackableJunimoBundle(JunimoBundle bundle)
-        : base(bundle.Name) {
+        : base(bundle.Name, bundle.Name) {
             Bundle = bundle;
         }
 
@@ -51,9 +51,9 @@ namespace StardewValleyTodo.Tracker {
         /// <returns>Drawn area size</returns>
         private Vector2 DrawItem(SpriteBatch batch, Vector2 position, Inventory inventory, JunimoBundleIngredient ingredient) {
             // TODO: check item quality
-            var has = inventory.Get(ingredient.DisplayName);
-            var display = $"{ingredient.DisplayName} {(ingredient.Quality == 2 ? "*" : "")} ({has}/{ingredient.Count})";
-            var color = has >= ingredient.Count ? Color.LightGreen : Color.White;
+            var hasItems = inventory.Get(ingredient.Id);
+            var display = $"{ingredient.DisplayName} {(ingredient.Quality == 2 ? "*" : "")} ({hasItems}/{ingredient.Count})";
+            var color = hasItems >= ingredient.Count ? Color.LightGreen : Color.White;
             batch.DrawString(Game1.smallFont, display, position, color);
 
             var size = Game1.smallFont.MeasureString(display);

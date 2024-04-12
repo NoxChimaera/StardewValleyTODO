@@ -28,7 +28,7 @@ namespace StardewValleyTodo.Controllers {
                 var info = Game1.objectData[id];
                 var materialName = LocalizedStringLoader.Load(info.DisplayName);
 
-                components.Add(new CountableItem(materialName, material.Amount));
+                components.Add(new CountableItem(id, materialName, material.Amount));
             }
 
             var recipe = new TrackableRecipe(displayName, components);
