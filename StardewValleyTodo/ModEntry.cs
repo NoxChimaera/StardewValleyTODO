@@ -40,10 +40,6 @@ namespace StardewValleyTodo {
         private void Shutdown() {
             var helper = Helper;
 
-            helper.Events.GameLoop.GameLaunched -= GameLoop_GameLaunched;
-
-            helper.Events.GameLoop.SaveLoaded -= GameLoop_SaveLoaded;
-
             helper.Events.Input.ButtonPressed -= Input_ButtonPressed;
             helper.Events.Display.RenderedHud -= Display_RenderedHud;
 
