@@ -1,3 +1,4 @@
+using System;
 using GenericModConfigMenu;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -36,6 +37,20 @@ namespace StardewValleyTodo {
             helper.Events.GameLoop.OneSecondUpdateTicked += GameLoop_OneSecondUpdateTicked;
         }
 
+        private void Shutdown() {
+            var helper = Helper;
+
+            helper.Events.GameLoop.GameLaunched -= GameLoop_GameLaunched;
+
+            helper.Events.GameLoop.SaveLoaded -= GameLoop_SaveLoaded;
+
+            helper.Events.Input.ButtonPressed -= Input_ButtonPressed;
+            helper.Events.Display.RenderedHud -= Display_RenderedHud;
+
+            helper.Events.Player.InventoryChanged -= Player_InventoryChanged;
+            helper.Events.GameLoop.OneSecondUpdateTicked -= GameLoop_OneSecondUpdateTicked;
+        }
+
         private void GameLoop_GameLaunched(object sender, GameLaunchedEventArgs e) {
             var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             if (configMenu is null) {
@@ -54,13 +69,19 @@ namespace StardewValleyTodo {
         }
 
         private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e) {
-            _inventory = new Inventory(Game1.player.Items);
-            _inventoryTracker = new InventoryTracker();
-            _junimoBundles = new JunimoBundles();
+            try {
+                _inventory = new Inventory(Game1.player.Items);
+                _inventoryTracker = new InventoryTracker();
+                _junimoBundles = new JunimoBundles();
 
-            _craftingMenuController = new CraftingMenuController();
-            _carpenterMenuController = new CarpenterMenuController();
-            _junimoBundleController = new JunimoBundleController();
+                _craftingMenuController = new CraftingMenuController();
+                _carpenterMenuController = new CarpenterMenuController();
+                _junimoBundleController = new JunimoBundleController();
+            } catch (Exception exception) {
+                Shutdown();
+
+                throw new Exception("Failed to initialize Recipe Tracker mod", exception);
+            }
         }
 
         private void Player_InventoryChanged(object sender, InventoryChangedEventArgs e) {
