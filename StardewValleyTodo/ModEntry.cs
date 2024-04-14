@@ -62,6 +62,10 @@ namespace StardewValleyTodo {
                 value => _config.VerticalOffset = value,
                 () => "Vertical Offset"
             );
+
+            configMenu.AddKeybindList(ModManifest, () => _config.TrackItem, value => _config.TrackItem = value, () => "Track Item (in menu)");
+            configMenu.AddKeybindList(ModManifest, () => _config.ToggleVisibility, value => _config.ToggleVisibility = value, () => "Toggle Tracker UI Visibility (in game)");
+            configMenu.AddKeybindList(ModManifest, () => _config.ClearTracker, value => _config.ClearTracker = value, () => "Clear Tracking List (in game)");
         }
 
         private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e) {
@@ -127,31 +131,30 @@ namespace StardewValleyTodo {
                 return;
             }
 
-            if (e.Button == SButton.Z) {
-                var currentMenu = Game1.activeClickableMenu;
+            var currentMenu = Game1.activeClickableMenu;
 
-                // In menus
+            if (currentMenu != null && _config.TrackItem.JustPressed()) {
                 if (currentMenu is GameMenu gameMenu) {
                     if (gameMenu.GetCurrentPage() is CraftingPage page) {
                         _craftingMenuController.ProcessInput(page, _inventoryTracker);
                     }
-                    return;
                 } else if (currentMenu is JunimoNoteMenu junimoNoteMenu) {
                     _junimoBundleController.ProcessInput(junimoNoteMenu, _inventoryTracker, _junimoBundles);
-                    return;
                 } else if (currentMenu is CarpenterMenu carpenterMenu) {
                     _carpenterMenuController.ProcessInput(carpenterMenu, _inventoryTracker);
-                    return;
                 }
 
-                // In game
-                if (e.IsDown(SButton.LeftShift) || e.IsDown(SButton.RightShift)) {
-                    ResetInventoryTracker();
-                    return;
-                }
+                return;
+            }
 
-                // Hide or show tracker UI
+            if (_config.ClearTracker.JustPressed()) {
+                ResetInventoryTracker();
+                return;
+            }
+
+            if (_config.ToggleVisibility.JustPressed()) {
                 _inventoryTracker.IsVisible = !_inventoryTracker.IsVisible;
+
             }
         }
 
