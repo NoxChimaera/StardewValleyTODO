@@ -22,6 +22,7 @@ namespace StardewValleyTodo {
         private CraftingMenuController _craftingMenuController;
         private CarpenterMenuController _carpenterMenuController;
         private JunimoBundleController _junimoBundleController;
+        private BetterCraftingMenuController _betterCraftingMenuController;
 
         public override void Entry(IModHelper helper) {
             _config = helper.ReadConfig<ModConfig>();
@@ -77,6 +78,7 @@ namespace StardewValleyTodo {
                 _craftingMenuController = new CraftingMenuController();
                 _carpenterMenuController = new CarpenterMenuController();
                 _junimoBundleController = new JunimoBundleController();
+                _betterCraftingMenuController = new BetterCraftingMenuController();
             } catch (Exception exception) {
                 Shutdown();
 
@@ -135,8 +137,13 @@ namespace StardewValleyTodo {
 
             if (currentMenu != null && _config.TrackItem.JustPressed()) {
                 if (currentMenu is GameMenu gameMenu) {
-                    if (gameMenu.GetCurrentPage() is CraftingPage page) {
+                    var currentPage = gameMenu.GetCurrentPage();
+                    var pageName = currentPage.GetType().FullName;
+
+                    if (currentPage is CraftingPage page) {
                         _craftingMenuController.ProcessInput(page, _inventoryTracker);
+                    } else if (pageName == "Leclair.Stardew.BetterCrafting.Menus.BetterCraftingPage") {
+                        _betterCraftingMenuController.ProcessInput(currentPage, _inventoryTracker);
                     }
                 } else if (currentMenu is JunimoNoteMenu junimoNoteMenu) {
                     _junimoBundleController.ProcessInput(junimoNoteMenu, _inventoryTracker, _junimoBundles);
@@ -154,7 +161,6 @@ namespace StardewValleyTodo {
 
             if (_config.ToggleVisibility.JustPressed()) {
                 _inventoryTracker.IsVisible = !_inventoryTracker.IsVisible;
-
             }
         }
 
