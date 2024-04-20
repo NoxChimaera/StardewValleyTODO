@@ -9,7 +9,7 @@ namespace StardewValleyTodo.Controllers {
     public class BetterCraftingMenuController {
         public void ProcessInput(IClickableMenu page, InventoryTracker inventoryTracker) {
             var pageType = page.GetType();
-            var hoverRecipeGetter = pageType.GetField("hoverRecipe",  BindingFlags.Instance | BindingFlags.NonPublic);
+            var hoverRecipeGetter = pageType.GetField("hoverRecipe", BindingFlags.Instance | BindingFlags.NonPublic);
             var hoverRecipe = hoverRecipeGetter.GetValue(page);
 
             if (hoverRecipe == null) {
@@ -29,15 +29,22 @@ namespace StardewValleyTodo.Controllers {
 
             var recipeListGetter = recipeProp.GetType().GetField("recipeList");
             var rawComponents = (Dictionary<string, int>) recipeListGetter.GetValue(recipeProp);
-            var components = new List<CountableItem>(rawComponents.Count);
+            var components = new List<TrackableItemBase>(rawComponents.Count);
 
             foreach (var kv in rawComponents) {
                 var key = ObjectKey.Parse(kv.Key);
-                var info = Game1.objectData[key];
-                var name = LocalizedStringLoader.Load(info.DisplayName);
                 var count = kv.Value;
 
-                components.Add(new CountableItem(key, name, count));
+                if (key.Contains("-")) {
+                    var name = ((dynamic) recipeProp).getNameFromIndex(key);
+
+                    components.Add(new CountableItemCategory(key, name, count));
+                } else {
+                    var info = Game1.objectData[key];
+                    var name = LocalizedStringLoader.Load(info.DisplayName);
+
+                    components.Add(new CountableItem(key, name, count));
+                }
             }
 
             var todoRecipe = new TrackableRecipe(recipeName, components);
