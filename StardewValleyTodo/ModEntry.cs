@@ -64,9 +64,12 @@ namespace StardewValleyTodo {
                 () => "Vertical Offset"
             );
 
-            configMenu.AddKeybindList(ModManifest, () => _config.TrackItem, value => _config.TrackItem = value, () => "Track Item (in menu)");
-            configMenu.AddKeybindList(ModManifest, () => _config.ToggleVisibility, value => _config.ToggleVisibility = value, () => "Toggle Tracker UI Visibility (in game)");
-            configMenu.AddKeybindList(ModManifest, () => _config.ClearTracker, value => _config.ClearTracker = value, () => "Clear Tracking List (in game)");
+            configMenu.AddKeybindList(ModManifest, () => _config.TrackItem, value => _config.TrackItem = value,
+                () => "Track Item (in menu)");
+            configMenu.AddKeybindList(ModManifest, () => _config.ToggleVisibility,
+                value => _config.ToggleVisibility = value, () => "Toggle Tracker UI Visibility (in game)");
+            configMenu.AddKeybindList(ModManifest, () => _config.ClearTracker, value => _config.ClearTracker = value,
+                () => "Clear Tracking List (in game)");
         }
 
         private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e) {
@@ -105,11 +108,11 @@ namespace StardewValleyTodo {
 
         private void Display_RenderedHud(object sender, RenderedHudEventArgs e) {
             if (Context.IsWorldReady && Game1.displayHUD) {
-                DrawTodo();
+                DrawTracker();
             }
         }
 
-        private void DrawTodo() {
+        private void DrawTracker() {
             var sb = Game1.spriteBatch;
             if (_inventoryTracker.Items.Count == 0 || !_inventoryTracker.IsVisible) {
                 return;
@@ -128,28 +131,35 @@ namespace StardewValleyTodo {
             _inventoryTracker.Draw(sb, contentOffset, _inventory);
         }
 
+        private IClickableMenu GetCurrentPage(IClickableMenu page) {
+            if (page is GameMenu gameMenu) {
+                return gameMenu.GetCurrentPage();
+            }
+
+            return page;
+        }
+
         private void Input_ButtonPressed(object sender, ButtonPressedEventArgs e) {
             if (!Context.IsWorldReady) {
                 return;
             }
 
-            var currentMenu = Game1.activeClickableMenu;
+            var currentMenu = GetCurrentPage(Game1.activeClickableMenu);
 
             if (currentMenu != null && _config.TrackItem.JustPressed()) {
-                if (currentMenu is GameMenu gameMenu) {
-                    var currentPage = gameMenu.GetCurrentPage();
-                    var pageName = currentPage.GetType().FullName;
+                var pageName = currentMenu.GetType().FullName;
 
-                    if (currentPage is CraftingPage page) {
-                        _craftingMenuController.ProcessInput(page, _inventoryTracker);
-                    } else if (pageName == "Leclair.Stardew.BetterCrafting.Menus.BetterCraftingPage") {
-                        _betterCraftingMenuController.ProcessInput(currentPage, _inventoryTracker);
-                    }
+                if (currentMenu is CraftingPage craftingPage) {
+                    _craftingMenuController.ProcessInput(craftingPage, _inventoryTracker);
+                } else if (pageName == "Leclair.Stardew.BetterCrafting.Menus.BetterCraftingPage") {
+                    _betterCraftingMenuController.ProcessInput(currentMenu, _inventoryTracker);
                 } else if (currentMenu is JunimoNoteMenu junimoNoteMenu) {
                     _junimoBundleController.ProcessInput(junimoNoteMenu, _inventoryTracker, _junimoBundles);
                 } else if (currentMenu is CarpenterMenu carpenterMenu) {
                     _carpenterMenuController.ProcessInput(carpenterMenu, _inventoryTracker);
                 }
+
+                Console.WriteLine(currentMenu);
 
                 return;
             }

@@ -13,14 +13,14 @@ namespace StardewValleyTodo.Tracker {
         /// <summary>
         /// Recipe components.
         /// </summary>
-        public List<CountableItem> Items { get; }
+        public List<TrackableItemBase> Items { get; }
 
         /// <summary>
         /// Creates new instance.
         /// </summary>
         /// <param name="name">Recipe name</param>
         /// <param name="items">Recipe components</param>
-        public TrackableRecipe(string name, IEnumerable<CountableItem> items) : base(name, name) {
+        public TrackableRecipe(string name, IEnumerable<TrackableItemBase> items) : base(name, name) {
             Items = items.ToList();
         }
 

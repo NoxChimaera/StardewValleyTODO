@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using System.Linq;
+using StardewValley;
 using NativeInventory = StardewValley.Inventories.Inventory;
 
 namespace StardewValleyTodo.Game {
     public class Inventory {
         private readonly NativeInventory _nativeInventory;
         private Dictionary<string, int> _items;
+        private Dictionary<string, HashSet<string>> _byCategory;
 
         /// <summary>
         /// Represents player's inventory.
@@ -12,12 +15,12 @@ namespace StardewValleyTodo.Game {
         /// <param name="inventory">Native inventory structure</param>
         public Inventory(NativeInventory inventory) {
             _nativeInventory = inventory;
-
             Startup(inventory);
         }
 
         private void Startup(NativeInventory inventory) {
             _items = new Dictionary<string, int>();
+            _byCategory = new Dictionary<string, HashSet<string>>();
 
             foreach (var item in inventory) {
                 if (item == null) {
@@ -26,7 +29,14 @@ namespace StardewValleyTodo.Game {
                 }
 
                 var itemId = item.ItemId;
+                var categoryId = item.Category.ToString();
                 var count = item.Stack;
+
+                if (_byCategory.ContainsKey(categoryId)) {
+                    _byCategory[categoryId].Add(itemId);
+                } else {
+                    _byCategory[categoryId] = new HashSet<string> { itemId };
+                }
 
                 if (_items.ContainsKey(itemId)) {
                     _items[itemId] += count;
@@ -51,6 +61,16 @@ namespace StardewValleyTodo.Game {
             } else {
                 return 0;
             }
+        }
+
+        public int GetCountByCategory(string categoryId) {
+            if (_byCategory.ContainsKey(categoryId)) {
+                var items = _byCategory[categoryId];
+
+                return items.Select(Get).Sum();
+            }
+
+            return 0;
         }
     }
 }

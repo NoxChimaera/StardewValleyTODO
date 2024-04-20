@@ -22,15 +22,24 @@ namespace StardewValleyTodo.Controllers {
             }
 
             var rawComponents = recipe.recipeList;
-            var components = new List<CountableItem>(rawComponents.Count);
+            var components = new List<TrackableItemBase>(rawComponents.Count);
 
             foreach (var kv in rawComponents) {
                 var key = ObjectKey.Parse(kv.Key);
-                var info = Game1.objectData[key];
-                var name = LocalizedStringLoader.Load(info.DisplayName);
                 var count = kv.Value;
 
-                components.Add(new CountableItem(key, name, count));
+                if (key.Contains("-")) {
+                    var name = recipe.getNameFromIndex(key);
+
+                    components.Add(new CountableItemCategory(key, name, count));
+                } else {
+                    var info = Game1.objectData[key];
+                    var name = LocalizedStringLoader.Load(info.DisplayName);
+
+                    components.Add(new CountableItem(key, name, count));
+                }
+
+
             }
 
             var todoRecipe = new TrackableRecipe(recipeName, components);
