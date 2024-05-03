@@ -1,10 +1,13 @@
 using System;
+using System.Linq;
 using GenericModConfigMenu;
 using Microsoft.Xna.Framework;
+using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
+using StardewValley.Quests;
 using StardewValleyTodo.Config;
 using StardewValleyTodo.Controllers;
 using StardewValleyTodo.Game;
@@ -23,6 +26,7 @@ namespace StardewValleyTodo {
         private CarpenterMenuController _carpenterMenuController;
         private JunimoBundleController _junimoBundleController;
         private BetterCraftingMenuController _betterCraftingMenuController;
+        private QuestLogController _questLogController;
 
         public override void Entry(IModHelper helper) {
             _config = helper.ReadConfig<ModConfig>();
@@ -82,10 +86,31 @@ namespace StardewValleyTodo {
                 _carpenterMenuController = new CarpenterMenuController();
                 _junimoBundleController = new JunimoBundleController();
                 _betterCraftingMenuController = new BetterCraftingMenuController();
+                _questLogController = new QuestLogController(_inventoryTracker, _inventory);
+
+                Game1.player.questLog.OnElementChanged += QuestLogOnOnElementChanged;
             } catch (Exception exception) {
                 Shutdown();
 
                 throw new Exception("Failed to initialize Recipe Tracker mod", exception);
+            }
+        }
+
+        private void QuestLogOnOnElementChanged(
+            NetList<Quest, NetRef<Quest>> list, int index,
+            Quest oldValue,
+            Quest newValue
+        ) {
+            if (newValue != null) {
+                return;
+            }
+
+            var trackedQuest = _inventoryTracker.Items
+                .OfType<TrackableQuest>()
+                .FirstOrDefault(x => x.Quest == oldValue);
+
+            if (trackedQuest != null) {
+                _inventoryTracker.Items.Remove(trackedQuest);
             }
         }
 
@@ -157,9 +182,9 @@ namespace StardewValleyTodo {
                     _junimoBundleController.ProcessInput(junimoNoteMenu, _inventoryTracker, _junimoBundles);
                 } else if (currentMenu is CarpenterMenu carpenterMenu) {
                     _carpenterMenuController.ProcessInput(carpenterMenu, _inventoryTracker);
+                } else if (currentMenu is QuestLog questLog) {
+                    _questLogController.ProcessInput(questLog);
                 }
-
-                Console.WriteLine(currentMenu);
 
                 return;
             }
