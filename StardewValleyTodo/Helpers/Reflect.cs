@@ -13,5 +13,16 @@ namespace StardewValleyTodo.Helpers {
 
             return (T) getter.GetValue(target);
         }
+
+        public static T GetPublic<T>(object target, string field) {
+            var getter = target.GetType().GetField(field);
+
+            if (getter == null) {
+                throw new ArgumentException(
+                    $"There is no public field '{field}' in {target.GetType().Name}");
+            }
+
+            return (T) getter.GetValue(target);
+        }
     }
 }

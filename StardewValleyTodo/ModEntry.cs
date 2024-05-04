@@ -82,11 +82,11 @@ namespace StardewValleyTodo {
                 _inventoryTracker = new InventoryTracker();
                 _junimoBundles = new JunimoBundles();
 
-                _craftingMenuController = new CraftingMenuController();
-                _carpenterMenuController = new CarpenterMenuController();
-                _junimoBundleController = new JunimoBundleController();
-                _betterCraftingMenuController = new BetterCraftingMenuController();
-                _questLogController = new QuestLogController(_inventoryTracker, _inventory);
+                _craftingMenuController = new CraftingMenuController(_inventoryTracker);
+                _carpenterMenuController = new CarpenterMenuController(_inventoryTracker);
+                _junimoBundleController = new JunimoBundleController(_inventoryTracker, _junimoBundles);
+                _betterCraftingMenuController = new BetterCraftingMenuController(_inventoryTracker);
+                _questLogController = new QuestLogController(_inventoryTracker);
 
                 Game1.player.questLog.OnElementChanged += QuestLogOnOnElementChanged;
             } catch (Exception exception) {
@@ -175,13 +175,13 @@ namespace StardewValleyTodo {
                 var pageName = currentMenu.GetType().FullName;
 
                 if (currentMenu is CraftingPage craftingPage) {
-                    _craftingMenuController.ProcessInput(craftingPage, _inventoryTracker);
+                    _craftingMenuController.ProcessInput(craftingPage);
                 } else if (pageName == "Leclair.Stardew.BetterCrafting.Menus.BetterCraftingPage") {
-                    _betterCraftingMenuController.ProcessInput(currentMenu, _inventoryTracker);
+                    _betterCraftingMenuController.ProcessInput(currentMenu);
                 } else if (currentMenu is JunimoNoteMenu junimoNoteMenu) {
-                    _junimoBundleController.ProcessInput(junimoNoteMenu, _inventoryTracker, _junimoBundles);
+                    _junimoBundleController.ProcessInput(junimoNoteMenu);
                 } else if (currentMenu is CarpenterMenu carpenterMenu) {
-                    _carpenterMenuController.ProcessInput(carpenterMenu, _inventoryTracker);
+                    _carpenterMenuController.ProcessInput(carpenterMenu);
                 } else if (currentMenu is QuestLog questLog) {
                     _questLogController.ProcessInput(questLog);
                 }

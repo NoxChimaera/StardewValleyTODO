@@ -4,18 +4,15 @@ using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Quests;
 using StardewValley.SpecialOrders;
-using StardewValleyTodo.Game;
 using StardewValleyTodo.Helpers;
 using StardewValleyTodo.Tracker;
 
 namespace StardewValleyTodo.Controllers {
     public class QuestLogController {
-        private InventoryTracker _inventoryTracker;
-        private Inventory _inventory;
+        private readonly InventoryTracker _inventoryTracker;
 
-        public QuestLogController(InventoryTracker inventoryTracker, Inventory inventory) {
+        public QuestLogController(InventoryTracker inventoryTracker) {
             _inventoryTracker = inventoryTracker;
-            _inventory = inventory;
         }
 
         public void ProcessInput(QuestLog menu) {
@@ -27,7 +24,7 @@ namespace StardewValleyTodo.Controllers {
             }
 
             var quest = Reflect.GetPrivate<IQuest>(menu, "_shownQuest");
-            TrackableQuest trackableQuest = null;
+            TrackableQuest trackableQuest;
 
             switch (quest) {
                 case FishingQuest fishingQuest:
@@ -81,124 +78,71 @@ namespace StardewValleyTodo.Controllers {
             return new TrackableQuest(name, items, specialOrder);
         }
 
-        private TrackableQuest TrackCraftingQuest(CraftingQuest quest) {
-            var name = quest.questTitle;
-
-            TrackableItemBase questItem = null;
-            var key = ObjectKey.Parse(quest.ItemId.Value);
-
+        private TrackableItemBase CreateCountableItem(string key, int amount) {
             if (key.Contains("-")) {
                 throw new NotImplementedException("Can not track categories");
-            } else {
-                var info = Game1.objectData[key];
-                var itemName = LocalizedStringLoader.Load(info.DisplayName);
-
-                questItem = (new CountableItem(key, itemName, 1));
             }
 
-            return new TrackableQuest(name, questItem, quest);
+            var info = Game1.objectData[key];
+            var itemName = LocalizedStringLoader.Load(info.DisplayName);
+
+            return (new CountableItem(key, itemName, amount));
+        }
+
+        private string FormatQuestName(string title, string npcName) {
+            return $"{npcName}: {title}";
         }
 
         private TrackableQuest TrackItemDeliveryQuest(ItemDeliveryQuest quest) {
-            var name = $"{quest.target.Value}: {quest.questTitle}";
-
-            TrackableItemBase questItem = null;
+            var name = FormatQuestName(quest.questTitle, quest.target.Value);
             var key = ObjectKey.Parse(quest.ItemId.Value);
-
-            if (key.Contains("-")) {
-                throw new NotImplementedException("Can not track categories");
-            } else {
-                var info = Game1.objectData[key];
-                var itemName = LocalizedStringLoader.Load(info.DisplayName);
-
-                questItem = (new CountableItem(key, itemName, quest.number.Value));
-            }
+            var questItem = CreateCountableItem(key, quest.number.Value);
 
             return new TrackableQuest(name, questItem, quest);
         }
 
         private TrackableQuest TrackFishingQuest(FishingQuest quest) {
-            var name = $"{quest.target.Value}: {quest.questTitle}";
-
-            TrackableItemBase questItem = null;
+            var name = FormatQuestName(quest.questTitle, quest.target.Value);
             var key = ObjectKey.Parse(quest.ItemId.Value);
-
-            if (key.Contains("-")) {
-                throw new NotImplementedException("Can not track categories");
-            } else {
-                var info = Game1.objectData[key];
-                var itemName = LocalizedStringLoader.Load(info.DisplayName);
-
-                questItem = (new CountableItem(key, itemName, quest.numberToFish.Value));
-            }
+            var questItem = CreateCountableItem(key, quest.numberToFish.Value);
 
             return new TrackableQuest(name, questItem, quest);
         }
 
         private TrackableQuest TrackItemHarvestQuest(ItemHarvestQuest quest) {
             var name = quest.questTitle;
-
-            TrackableItemBase questItem = null;
             var key = ObjectKey.Parse(quest.ItemId.Value);
-
-            if (key.Contains("-")) {
-                throw new NotImplementedException("Can not track categories");
-            } else {
-                var info = Game1.objectData[key];
-                var itemName = LocalizedStringLoader.Load(info.DisplayName);
-
-                questItem = (new CountableItem(key, itemName, quest.Number.Value));
-            }
+            var questItem = CreateCountableItem(key, quest.Number.Value);
 
             return new TrackableQuest(name, questItem, quest);
         }
 
         private TrackableQuest TrackLostItemQuest(LostItemQuest quest) {
-            var name = $"{quest.npcName}: {quest.questTitle}";
-
-            TrackableItemBase questItem = null;
+            var name = FormatQuestName(quest.questTitle, quest.npcName.Value);
             var key = ObjectKey.Parse(quest.ItemId.Value);
-
-            if (key.Contains("-")) {
-                throw new NotImplementedException("Can not track categories");
-            } else {
-                var info = Game1.objectData[key];
-                var itemName = LocalizedStringLoader.Load(info.DisplayName);
-
-                questItem = (new CountableItem(key, itemName, 1));
-            }
+            var questItem = CreateCountableItem(key, 1);
 
             return new TrackableQuest(name, questItem, quest);
         }
 
         private TrackableQuest TrackResourceCollectionQuest(ResourceCollectionQuest quest) {
-            var name = $"{quest.target.Value}: {quest.questTitle}";
-
-            TrackableItemBase questItem = null;
+            var name = FormatQuestName(quest.questTitle, quest.target.Value);
             var key = ObjectKey.Parse(quest.ItemId.Value);
-
-            if (key.Contains("-")) {
-                throw new NotImplementedException("Can not track categories");
-            } else {
-                var info = Game1.objectData[key];
-                var itemName = LocalizedStringLoader.Load(info.DisplayName);
-
-                questItem = (new CountableItem(key, itemName, quest.number.Value));
-            }
+            var questItem = CreateCountableItem(key, quest.number.Value);
 
             return new TrackableQuest(name, questItem, quest);
         }
 
         private TrackableQuest TrackSlayMonsterQuest(SlayMonsterQuest quest) {
-            var name = $"{quest.target.Value}: {quest.questTitle}";
-            TrackableItemBase questItem = new TrackableDynamicItem(quest.monsterName.Value,
+            var name = FormatQuestName(quest.questTitle, quest.target.Value);
+            var questItem = new TrackableDynamicItem(quest.monsterName.Value,
                 () => quest.numberToKill.Value, () => quest.numberKilled.Value);
             return new TrackableQuest(name, questItem, quest);
         }
 
         private TrackableQuest TrackBasicQuest(Quest quest) {
             var name = quest.questTitle;
-            TrackableItemBase questItem =
+            var questItem =
                 new TrackableDynamicItem(quest.currentObjective, () => 1, () => quest.completed.Value ? 1 : 0, false);
             return new TrackableQuest(name, questItem, quest);
         }

@@ -6,7 +6,13 @@ using StardewValleyTodo.Tracker;
 
 namespace StardewValleyTodo.Controllers {
     public class CraftingMenuController {
-        public void ProcessInput(CraftingPage page, InventoryTracker inventoryTracker) {
+        private readonly InventoryTracker _inventoryTracker;
+
+        public CraftingMenuController(InventoryTracker inventoryTracker) {
+            _inventoryTracker = inventoryTracker;
+        }
+
+        public void ProcessInput(CraftingPage page) {
             var recipe = page.hoverRecipe;
 
             if (recipe == null) {
@@ -15,8 +21,8 @@ namespace StardewValleyTodo.Controllers {
 
             var recipeName = recipe.DisplayName;
 
-            if (inventoryTracker.Has(recipeName)) {
-                inventoryTracker.Off(recipeName);
+            if (_inventoryTracker.Has(recipeName)) {
+                _inventoryTracker.Off(recipeName);
 
                 return;
             }
@@ -38,12 +44,10 @@ namespace StardewValleyTodo.Controllers {
 
                     components.Add(new CountableItem(key, name, count));
                 }
-
-
             }
 
             var todoRecipe = new TrackableRecipe(recipeName, components);
-            inventoryTracker.Toggle(todoRecipe);
+            _inventoryTracker.Toggle(todoRecipe);
         }
     }
 }
