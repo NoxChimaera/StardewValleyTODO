@@ -8,6 +8,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Quests;
+using StardewValley.SpecialOrders;
 using StardewValleyTodo.Config;
 using StardewValleyTodo.Controllers;
 using StardewValleyTodo.Game;
@@ -89,10 +90,29 @@ namespace StardewValleyTodo {
                 _questLogController = new QuestLogController(_inventoryTracker);
 
                 Game1.player.questLog.OnElementChanged += QuestLogOnOnElementChanged;
+                Game1.player.team.specialOrders.OnElementChanged += SpecialOrdersOnOnElementChanged;
             } catch (Exception exception) {
                 Shutdown();
 
                 throw new Exception("Failed to initialize Recipe Tracker mod", exception);
+            }
+        }
+
+        private void SpecialOrdersOnOnElementChanged(
+            NetList<SpecialOrder, NetRef<SpecialOrder>> list, int index,
+            SpecialOrder oldValue,
+            SpecialOrder newValue
+        ) {
+            if (newValue != null) {
+                return;
+            }
+
+            var trackedQuest = _inventoryTracker.Items
+                .OfType<TrackableQuest>()
+                .FirstOrDefault(x => x.Quest == oldValue);
+
+            if (trackedQuest != null) {
+                _inventoryTracker.Items.Remove(trackedQuest);
             }
         }
 
