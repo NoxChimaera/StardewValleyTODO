@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValleyTodo.Helpers;
@@ -7,28 +6,28 @@ using StardewValleyTodo.Tracker;
 
 namespace StardewValleyTodo.Controllers {
     public class BetterCraftingMenuController {
-        public void ProcessInput(IClickableMenu page, InventoryTracker inventoryTracker) {
-            var pageType = page.GetType();
-            var hoverRecipeGetter = pageType.GetField("hoverRecipe", BindingFlags.Instance | BindingFlags.NonPublic);
-            var hoverRecipe = hoverRecipeGetter.GetValue(page);
+        private readonly InventoryTracker _inventoryTracker;
 
+        public BetterCraftingMenuController(InventoryTracker inventoryTracker) {
+            _inventoryTracker = inventoryTracker;
+
+        }
+
+        public void ProcessInput(IClickableMenu page) {
+            var hoverRecipe = Reflect.GetPrivate<dynamic>(page, "hoverRecipe");
             if (hoverRecipe == null) {
                 return;
             }
 
-            var recipeName = ((dynamic) hoverRecipe).DisplayName;
-
-            if (inventoryTracker.Has(recipeName)) {
-                inventoryTracker.Off(recipeName);
+            var recipeName = (string) hoverRecipe.DisplayName;
+            if (_inventoryTracker.Has(recipeName)) {
+                _inventoryTracker.Off(recipeName);
 
                 return;
             }
 
-            var recipeGetter = hoverRecipe.GetType().GetField("Recipe");
-            var recipeProp = recipeGetter.GetValue(hoverRecipe);
-
-            var recipeListGetter = recipeProp.GetType().GetField("recipeList");
-            var rawComponents = (Dictionary<string, int>) recipeListGetter.GetValue(recipeProp);
+            var recipeProp = hoverRecipe.Recipe;
+            var rawComponents = (Dictionary<string, int>) recipeProp.recipeList;
             var components = new List<TrackableItemBase>(rawComponents.Count);
 
             foreach (var kv in rawComponents) {
@@ -36,7 +35,7 @@ namespace StardewValleyTodo.Controllers {
                 var count = kv.Value;
 
                 if (key.Contains("-")) {
-                    var name = ((dynamic) recipeProp).getNameFromIndex(key);
+                    var name = (string) recipeProp.getNameFromIndex(key);
 
                     components.Add(new CountableItemCategory(key, name, count));
                 } else {
@@ -48,7 +47,7 @@ namespace StardewValleyTodo.Controllers {
             }
 
             var todoRecipe = new TrackableRecipe(recipeName, components);
-            inventoryTracker.Toggle(todoRecipe);
+            _inventoryTracker.Toggle(todoRecipe);
         }
     }
 }
